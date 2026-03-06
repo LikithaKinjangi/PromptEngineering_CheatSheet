@@ -1,0 +1,1880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prompt Engineering Cheat Sheet</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;600&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --surface2: #1a1a24;
+    --border: #2a2a3a;
+    --accent1: #7c3aed;
+    --accent2: #06b6d4;
+    --accent3: #f59e0b;
+    --accent4: #10b981;
+    --accent5: #f43f5e;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --highlight: #a78bfa;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  /* NAV */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,10,15,0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow-x: auto;
+    height: 50px;
+    scrollbar-width: none;
+  }
+  nav::-webkit-scrollbar { display: none; }
+
+  .nav-brand {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 15px;
+    color: var(--highlight);
+    white-space: nowrap;
+    margin-right: 16px;
+    letter-spacing: -0.5px;
+  }
+
+  .nav-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--muted);
+    padding: 5px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .nav-btn:hover, .nav-btn.active {
+    color: var(--text);
+    border-color: var(--border);
+    background: var(--surface2);
+  }
+  .nav-btn.active { color: var(--highlight); border-color: var(--accent1); }
+
+  /* MAIN LAYOUT */
+  main {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 32px 24px 80px;
+  }
+
+  /* SECTIONS */
+  .section { display: none; animation: fadeIn 0.3s ease; }
+  .section.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* HERO */
+  .hero {
+    text-align: center;
+    padding: 48px 0 40px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -60px; left: 50%;
+    transform: translateX(-50%);
+    width: 600px; height: 300px;
+    background: radial-gradient(ellipse, rgba(124,58,237,0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-badge {
+    display: inline-block;
+    background: rgba(124,58,237,0.15);
+    border: 1px solid rgba(124,58,237,0.4);
+    color: var(--highlight);
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(36px, 6vw, 64px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -2px;
+    background: linear-gradient(135deg, #fff 0%, var(--highlight) 50%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 14px;
+  }
+
+  .hero p {
+    color: var(--muted);
+    font-size: 15px;
+    max-width: 520px;
+    margin: 0 auto 32px;
+    line-height: 1.6;
+  }
+
+  .level-pills {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .level-pill {
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .pill-beginner { background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); }
+  .pill-intermediate { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
+  .pill-advanced { background: rgba(244,63,94,0.15); color: #f43f5e; border: 1px solid rgba(244,63,94,0.3); }
+
+  /* GRID LAYOUTS */
+  .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .grid-auto { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+
+  @media (max-width: 900px) {
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 1100px) {
+    .grid-4 { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* CARDS */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .card:hover { border-color: rgba(124,58,237,0.4); transform: translateY(-1px); }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--card-accent, var(--accent1));
+    border-radius: 12px 12px 0 0;
+  }
+
+  .card-cyan::before { background: var(--accent2); }
+  .card-amber::before { background: var(--accent3); }
+  .card-green::before { background: var(--accent4); }
+  .card-rose::before { background: var(--accent5); }
+  .card-purple::before { background: var(--accent1); }
+
+  .card h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card p { color: var(--muted); font-size: 12px; line-height: 1.6; }
+
+  /* SECTION TITLE */
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-sub {
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 24px;
+  }
+
+  /* CODE BLOCKS */
+  .code-block {
+    background: #0d0d14;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    line-height: 1.7;
+    color: #c9d1d9;
+    overflow-x: auto;
+    margin: 10px 0;
+    position: relative;
+  }
+  .code-block .comment { color: #484f58; }
+  .code-block .key { color: var(--accent2); }
+  .code-block .val { color: #a5d6ff; }
+  .code-block .string { color: #a5d6ff; }
+  .code-block .tag { color: var(--accent3); }
+  .code-block .hl { color: var(--highlight); }
+  .code-block .green { color: var(--accent4); }
+
+  /* TECHNIQUE ITEMS */
+  .technique-item {
+    display: flex;
+    gap: 12px;
+    padding: 14px;
+    background: var(--surface2);
+    border-radius: 10px;
+    margin-bottom: 10px;
+    border: 1px solid var(--border);
+    transition: border-color 0.2s;
+  }
+  .technique-item:hover { border-color: rgba(124,58,237,0.3); }
+
+  .t-icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+    background: var(--t-bg, rgba(124,58,237,0.15));
+  }
+
+  .t-body h4 {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 3px;
+  }
+  .t-body p { color: var(--muted); font-size: 12px; }
+
+  /* TAGS */
+  .tag-group { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .tag {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .tag-beginner { background: rgba(16,185,129,0.15); color: #10b981; }
+  .tag-intermediate { background: rgba(245,158,11,0.15); color: #f59e0b; }
+  .tag-advanced { background: rgba(244,63,94,0.15); color: #f43f5e; }
+  .tag-agent { background: rgba(6,182,212,0.15); color: var(--accent2); }
+
+  /* FRAMEWORK DIAGRAM */
+  .framework-visual {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+    margin-bottom: 20px;
+  }
+
+  .fw-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 800;
+    text-align: center;
+    margin-bottom: 20px;
+    color: var(--highlight);
+  }
+
+  .fw-flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .fw-step {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    text-align: center;
+    min-width: 100px;
+    flex: 1;
+    max-width: 160px;
+  }
+  .fw-step .step-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .fw-step .step-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .fw-step .step-desc { font-size: 10px; color: var(--muted); }
+
+  .fw-arrow {
+    color: var(--muted);
+    font-size: 18px;
+    padding: 0 6px;
+    flex-shrink: 0;
+  }
+
+  /* COMPARISON TABLE */
+  .compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  .compare-table th {
+    background: var(--surface2);
+    padding: 10px 14px;
+    text-align: left;
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+  }
+  .compare-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(42,42,58,0.5);
+    vertical-align: top;
+  }
+  .compare-table tr:hover td { background: rgba(255,255,255,0.02); }
+  .compare-table .good { color: var(--accent4); }
+  .compare-table .bad { color: var(--accent5); }
+  .compare-table .name-col { font-weight: 600; color: var(--text); }
+
+  /* PYRAMID */
+  .pyramid-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 20px;
+  }
+  .pyramid-level {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-family: 'Syne', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    position: relative;
+    transition: transform 0.2s;
+    cursor: default;
+  }
+  .pyramid-level:hover { transform: scale(1.02); }
+  .pyramid-level .pl-label { text-align: center; }
+  .pyramid-level .pl-sub { font-size: 10px; font-weight: 400; font-family: 'DM Sans', sans-serif; opacity: 0.8; margin-top: 2px; }
+
+  /* AGENT DIAGRAM */
+  .agent-diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+  }
+  .agent-node {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    text-align: center;
+  }
+  .agent-node h4 {
+    font-family: 'Syne', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .agent-node p { font-size: 10px; color: var(--muted); }
+
+  .agent-center {
+    background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(6,182,212,0.2));
+    border-color: rgba(124,58,237,0.5);
+    border-radius: 50%;
+    width: 90px; height: 90px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+  }
+
+  /* QUALITY METER */
+  .quality-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 8px 0;
+  }
+  .q-label { font-size: 11px; color: var(--muted); width: 100px; flex-shrink: 0; }
+  .q-track {
+    flex: 1;
+    height: 6px;
+    background: var(--surface2);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .q-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: var(--fill-color, var(--accent1));
+    transition: width 1s ease;
+  }
+  .q-val { font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--muted); width: 30px; }
+
+  /* BADGE */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* DIVIDER */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 28px 0;
+  }
+
+  /* TEMPLATE BOX */
+  .template-box {
+    background: #080810;
+    border: 1px solid rgba(124,58,237,0.3);
+    border-radius: 10px;
+    padding: 16px;
+    position: relative;
+    margin-bottom: 16px;
+  }
+  .template-box .t-label {
+    position: absolute;
+    top: -10px;
+    left: 14px;
+    background: var(--accent1);
+    color: white;
+    font-size: 9px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 2px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: var(--surface); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* CHECKLIST */
+  .checklist-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(42,42,58,0.4);
+    cursor: pointer;
+    user-select: none;
+  }
+  .checklist-item:last-child { border-bottom: none; }
+  .check-box {
+    width: 18px; height: 18px;
+    border: 2px solid var(--border);
+    border-radius: 4px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+    font-size: 10px;
+  }
+  .checklist-item.checked .check-box {
+    background: var(--accent4);
+    border-color: var(--accent4);
+    color: white;
+  }
+  .checklist-item .cl-text { font-size: 12px; }
+  .checklist-item.checked .cl-text { color: var(--muted); text-decoration: line-through; }
+
+  /* TOOLTIP */
+  .tooltip-trigger { position: relative; cursor: help; border-bottom: 1px dashed var(--muted); }
+  .tooltip-trigger:hover .tooltip-box { display: block; }
+  .tooltip-box {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 11px;
+    color: var(--text);
+    width: 200px;
+    z-index: 10;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  }
+
+  /* COPY BUTTON */
+  .copy-btn {
+    position: absolute;
+    top: 8px; right: 8px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    transition: all 0.2s;
+  }
+  .copy-btn:hover { color: var(--text); border-color: var(--accent1); }
+
+  /* OVERVIEW SPECIAL ELEMENTS */
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 700px) { .stat-row { grid-template-columns: repeat(2, 1fr); } }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+  }
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .stat-lbl { font-size: 10px; color: var(--muted); letter-spacing: 0.3px; }
+
+  .mb16 { margin-bottom: 16px; }
+  .mb24 { margin-bottom: 24px; }
+  .mt16 { margin-top: 16px; }
+  .flex { display: flex; }
+  .gap8 { gap: 8px; }
+  .wrap { flex-wrap: wrap; }
+  .items-center { align-items: center; }
+
+  /* PATTERN BLOCK */
+  .pattern-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .pb-header {
+    background: var(--surface2);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+  .pb-header h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .pb-body { padding: 16px; }
+
+  /* WHEN-TO-USE GRID */
+  .use-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .use-do, .use-dont {
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 11px;
+    line-height: 1.6;
+  }
+  .use-do { background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2); }
+  .use-dont { background: rgba(244,63,94,0.08); border: 1px solid rgba(244,63,94,0.2); }
+  .use-do strong { color: var(--accent4); display: block; margin-bottom: 4px; }
+  .use-dont strong { color: var(--accent5); display: block; margin-bottom: 4px; }
+
+  /* FULL-SPAN */
+  .full-span { grid-column: 1 / -1; }
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="nav-brand">⚡ PromptCraft</span>
+  <button class="nav-btn active" onclick="showSection('overview')">🏠 Overview</button>
+  <button class="nav-btn" onclick="showSection('fundamentals')">🔤 Fundamentals</button>
+  <button class="nav-btn" onclick="showSection('techniques')">🧠 Techniques</button>
+  <button class="nav-btn" onclick="showSection('frameworks')">🏗️ Frameworks</button>
+  <button class="nav-btn" onclick="showSection('agents')">🤖 Agent Patterns</button>
+  <button class="nav-btn" onclick="showSection('templates')">📋 App Templates</button>
+  <button class="nav-btn" onclick="showSection('checklist')">✅ Checklist</button>
+</nav>
+
+<main>
+
+<!-- ============================================================ OVERVIEW -->
+<div class="section active" id="overview">
+
+  <div class="hero">
+    <div class="hero-badge">🧠 Complete Reference · 2025 Edition</div>
+    <h1>Prompt Engineering<br>Cheat Sheet</h1>
+    <p>From first prompt to autonomous agents — everything you need to master AI communication, packed into one interactive reference.</p>
+    <div class="level-pills">
+      <span class="level-pill pill-beginner">🟢 Beginner</span>
+      <span class="level-pill pill-intermediate">🟡 Intermediate</span>
+      <span class="level-pill pill-advanced">🔴 Advanced</span>
+    </div>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat-card">
+      <div class="stat-num" style="color: var(--accent4);">7</div>
+      <div class="stat-lbl">Core Techniques</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color: var(--accent2);">5</div>
+      <div class="stat-lbl">Frameworks</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color: var(--accent3);">8</div>
+      <div class="stat-lbl">Agent Patterns</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color: var(--highlight);">12</div>
+      <div class="stat-lbl">App Templates</div>
+    </div>
+  </div>
+
+  <!-- Skill Pyramid -->
+  <div class="card mb24">
+    <h3>📈 The Prompt Engineering Skill Ladder</h3>
+    <p style="margin-bottom: 16px;">Progress through levels — each unlocks more control and reliability from your AI.</p>
+    <div class="pyramid-container">
+      <div class="pyramid-level" style="width:95%; background:rgba(244,63,94,0.12); border:1px solid rgba(244,63,94,0.3); color:#f43f5e;">
+        <div class="pl-label">
+          <div>🤖 AUTONOMOUS AGENTS & MULTI-AGENT ORCHESTRATION</div>
+          <div class="pl-sub">Tool use · Memory · Planning · Self-reflection · ReAct · Multi-step reasoning</div>
+        </div>
+      </div>
+      <div class="pyramid-level" style="width:82%; background:rgba(124,58,237,0.12); border:1px solid rgba(124,58,237,0.3); color:var(--highlight);">
+        <div class="pl-label">
+          <div>🧩 ADVANCED: Chain-of-Thought · Self-Consistency · Constitutional AI</div>
+          <div class="pl-sub">Structured outputs · System prompts · Persona engineering</div>
+        </div>
+      </div>
+      <div class="pyramid-level" style="width:68%; background:rgba(6,182,212,0.12); border:1px solid rgba(6,182,212,0.3); color:var(--accent2);">
+        <div class="pl-label">
+          <div>🔧 INTERMEDIATE: Few-shot · Role prompting · Template variables</div>
+          <div class="pl-sub">Context control · Output formatting · Iteration loops</div>
+        </div>
+      </div>
+      <div class="pyramid-level" style="width:53%; background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.3); color:var(--accent3);">
+        <div class="pl-label">
+          <div>📝 BEGINNER: Zero-shot · Clear instructions · Basic formatting</div>
+          <div class="pl-sub">One-shot examples · Task framing · Simple constraints</div>
+        </div>
+      </div>
+      <div class="pyramid-level" style="width:38%; background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.3); color:var(--accent4);">
+        <div class="pl-label">
+          <div>🌱 FOUNDATION: Understanding the model</div>
+          <div class="pl-sub">Tokens · Context window · Temperature · Top-p</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Core Anatomy -->
+  <div class="card mb24">
+    <h3>🔬 Anatomy of a Perfect Prompt</h3>
+    <p style="margin-bottom: 16px;">Every element below contributes to output quality. Use what you need — not all are always required.</p>
+    <div class="grid-4">
+      <div style="background:var(--surface2); border:1px solid rgba(16,185,129,0.3); border-radius:10px; padding:14px; text-align:center;">
+        <div style="font-size:24px; margin-bottom:8px;">🎭</div>
+        <div style="font-family:'Syne',sans-serif; font-size:12px; font-weight:700; color:var(--accent4); margin-bottom:4px;">ROLE / PERSONA</div>
+        <div style="font-size:10px; color:var(--muted);">Defines the AI's identity, expertise, and voice</div>
+      </div>
+      <div style="background:var(--surface2); border:1px solid rgba(6,182,212,0.3); border-radius:10px; padding:14px; text-align:center;">
+        <div style="font-size:24px; margin-bottom:8px;">📖</div>
+        <div style="font-family:'Syne',sans-serif; font-size:12px; font-weight:700; color:var(--accent2); margin-bottom:4px;">CONTEXT</div>
+        <div style="font-size:10px; color:var(--muted);">Background info the model needs to understand the task</div>
+      </div>
+      <div style="background:var(--surface2); border:1px solid rgba(124,58,237,0.3); border-radius:10px; padding:14px; text-align:center;">
+        <div style="font-size:24px; margin-bottom:8px;">🎯</div>
+        <div style="font-family:'Syne',sans-serif; font-size:12px; font-weight:700; color:var(--highlight); margin-bottom:4px;">TASK</div>
+        <div style="font-size:10px; color:var(--muted);">The specific action or output you want (be explicit)</div>
+      </div>
+      <div style="background:var(--surface2); border:1px solid rgba(245,158,11,0.3); border-radius:10px; padding:14px; text-align:center;">
+        <div style="font-size:24px; margin-bottom:8px;">📏</div>
+        <div style="font-family:'Syne',sans-serif; font-size:12px; font-weight:700; color:var(--accent3); margin-bottom:4px;">FORMAT</div>
+        <div style="font-size:10px; color:var(--muted);">Output structure, length, style, and constraints</div>
+      </div>
+      <div style="background:var(--surface2); border:1px solid rgba(244,63,94,0.3); border-radius:10px; padding:14px; text-align:center;">
+        <div style="font-size:24px; margin-bottom:8px;">💡</div>
+        <div style="font-family:'Syne',sans-serif; font-size:12px; font-weight:700; color:var(--accent5); margin-bottom:4px;">EXAMPLES</div>
+        <div style="font-size:10px; color:var(--muted);">Show don't tell — demonstrations outperform description</div>
+      </div>
+      <div style="background:var(--surface2); border:1px solid rgba(16,185,129,0.3); border-radius:10px; padding:14px; text-align:center;">
+        <div style="font-size:24px; margin-bottom:8px;">🚫</div>
+        <div style="font-family:'Syne',sans-serif; font-size:12px; font-weight:700; color:var(--accent4); margin-bottom:4px;">CONSTRAINTS</div>
+        <div style="font-size:10px; color:var(--muted);">What to avoid, rules, word limits, tone restrictions</div>
+      </div>
+      <div style="background:var(--surface2); border:1px solid rgba(6,182,212,0.3); border-radius:10px; padding:14px; text-align:center;">
+        <div style="font-size:24px; margin-bottom:8px;">🏁</div>
+        <div style="font-family:'Syne',sans-serif; font-size:12px; font-weight:700; color:var(--accent2); margin-bottom:4px;">AUDIENCE</div>
+        <div style="font-size:10px; color:var(--muted);">Who will read the output (expert, child, executive...)</div>
+      </div>
+      <div style="background:var(--surface2); border:1px solid rgba(124,58,237,0.3); border-radius:10px; padding:14px; text-align:center;">
+        <div style="font-size:24px; margin-bottom:8px;">🔁</div>
+        <div style="font-family:'Syne',sans-serif; font-size:12px; font-weight:700; color:var(--highlight); margin-bottom:4px;">FEEDBACK LOOP</div>
+        <div style="font-size:10px; color:var(--muted);">Iterate, critique, refine — prompting is a conversation</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Output quality -->
+  <div class="grid-2">
+    <div class="card card-green">
+      <h3>📊 What Drives Output Quality</h3>
+      <div style="margin-top: 8px;">
+        <div class="quality-bar"><span class="q-label">Specificity</span><div class="q-track"><div class="q-fill" style="width:92%; --fill-color:var(--accent4);"></div></div><span class="q-val">92%</span></div>
+        <div class="quality-bar"><span class="q-label">Examples</span><div class="q-track"><div class="q-fill" style="width:85%; --fill-color:var(--accent2);"></div></div><span class="q-val">85%</span></div>
+        <div class="quality-bar"><span class="q-label">Role/Persona</span><div class="q-track"><div class="q-fill" style="width:78%; --fill-color:var(--highlight);"></div></div><span class="q-val">78%</span></div>
+        <div class="quality-bar"><span class="q-label">Format hints</span><div class="q-track"><div class="q-fill" style="width:73%; --fill-color:var(--accent3);"></div></div><span class="q-val">73%</span></div>
+        <div class="quality-bar"><span class="q-label">Context depth</span><div class="q-track"><div class="q-fill" style="width:70%; --fill-color:var(--accent5);"></div></div><span class="q-val">70%</span></div>
+        <div class="quality-bar"><span class="q-label">Constraints</span><div class="q-track"><div class="q-fill" style="width:60%; --fill-color:var(--muted);"></div></div><span class="q-val">60%</span></div>
+      </div>
+    </div>
+    <div class="card card-cyan">
+      <h3>⚙️ Model Parameters at a Glance</h3>
+      <div style="margin-top: 8px;">
+        <div class="technique-item" style="padding:10px; margin-bottom:6px;">
+          <div class="t-icon" style="--t-bg:rgba(245,158,11,0.15); font-size:13px;">🌡️</div>
+          <div class="t-body"><h4>Temperature (0–2)</h4><p>Low = focused/factual. High = creative/varied. Default: 0.7</p></div>
+        </div>
+        <div class="technique-item" style="padding:10px; margin-bottom:6px;">
+          <div class="t-icon" style="--t-bg:rgba(6,182,212,0.15); font-size:13px;">🎯</div>
+          <div class="t-body"><h4>Top-p (0–1)</h4><p>Nucleus sampling. 0.9 = top 90% probability tokens only</p></div>
+        </div>
+        <div class="technique-item" style="padding:10px; margin-bottom:6px;">
+          <div class="t-icon" style="--t-bg:rgba(16,185,129,0.15); font-size:13px;">📏</div>
+          <div class="t-body"><h4>Max Tokens</h4><p>Hard cap on output length. 1 token ≈ 0.75 words</p></div>
+        </div>
+        <div class="technique-item" style="padding:10px;">
+          <div class="t-icon" style="--t-bg:rgba(124,58,237,0.15); font-size:13px;">🛑</div>
+          <div class="t-body"><h4>Stop Sequences</h4><p>Tokens where the model halts generation (e.g. "###")</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ============================================================ FUNDAMENTALS -->
+<div class="section" id="fundamentals">
+
+  <div class="section-title">🔤 Fundamentals</div>
+  <div class="section-sub">Core concepts every prompt engineer must master, from zero-shot to structured outputs.</div>
+
+  <div class="grid-2 mb24">
+    <!-- Zero-shot -->
+    <div class="card card-green">
+      <h3>🟢 Zero-Shot Prompting</h3>
+      <div class="tag-group mb16"><span class="tag tag-beginner">BEGINNER</span></div>
+      <p>Ask the model to perform a task with no examples. Works well for simple, well-understood tasks.</p>
+      <div class="code-block" style="margin-top:12px;">
+<span class="comment"># Zero-shot: direct instruction</span>
+<span class="hl">Classify</span> the sentiment of this review as
+<span class="green">Positive</span>, <span class="tag">Negative</span>, or <span class="val">Neutral</span>:
+
+<span class="string">"The product arrived fast but the packaging
+was damaged."</span>
+      </div>
+      <div class="use-grid" style="margin-top:12px;">
+        <div class="use-do"><strong>✓ Use when</strong>Task is simple, model knows it well, speed matters</div>
+        <div class="use-dont"><strong>✗ Skip when</strong>Task is niche, nuanced, or output format is specific</div>
+      </div>
+    </div>
+
+    <!-- One-shot -->
+    <div class="card card-amber">
+      <h3>🟡 One-Shot & Few-Shot</h3>
+      <div class="tag-group mb16"><span class="tag tag-beginner">BEGINNER</span><span class="tag tag-intermediate">INTERMEDIATE</span></div>
+      <p>Provide 1–5 examples to demonstrate the exact pattern you want the model to replicate.</p>
+      <div class="code-block" style="margin-top:12px;">
+<span class="comment"># Few-shot: show examples first</span>
+<span class="hl">Examples:</span>
+Input: <span class="string">"I love this!"</span>  → Positive
+Input: <span class="string">"Terrible experience"</span> → Negative
+Input: <span class="string">"It was okay"</span> → Neutral
+
+<span class="hl">Now classify:</span>
+Input: <span class="string">"Better than expected"</span> →
+      </div>
+      <div class="use-grid" style="margin-top:12px;">
+        <div class="use-do"><strong>✓ Use when</strong>You need consistent format or specialized classification</div>
+        <div class="use-dont"><strong>✗ Skip when</strong>Examples don't represent edge cases you care about</div>
+      </div>
+    </div>
+
+    <!-- System Prompts -->
+    <div class="card card-purple">
+      <h3>🧩 System Prompts</h3>
+      <div class="tag-group mb16"><span class="tag tag-intermediate">INTERMEDIATE</span></div>
+      <p>Set the AI's persistent identity, tone, rules, and capabilities before any user message. The backbone of any deployed app.</p>
+      <div class="code-block" style="margin-top:12px;">
+<span class="key">SYSTEM:</span>
+<span class="hl">You are Aria</span>, a senior product analyst at a
+SaaS startup. You:
+- <span class="green">Always</span> back claims with data or caveats
+- <span class="green">Never</span> speculate without flagging uncertainty
+- Respond in concise bullet points max 150 words
+- Audience: non-technical founders
+
+<span class="key">USER:</span>
+<span class="string">What's our churn risk this quarter?</span>
+      </div>
+    </div>
+
+    <!-- Role Prompting -->
+    <div class="card card-cyan">
+      <h3>🎭 Role Prompting</h3>
+      <div class="tag-group mb16"><span class="tag tag-beginner">BEGINNER</span><span class="tag tag-intermediate">INTERMEDIATE</span></div>
+      <p>Assign a specific expert persona to calibrate knowledge depth, vocabulary, and perspective.</p>
+      <div class="code-block" style="margin-top:12px;">
+<span class="comment"># Weak role</span>
+<span class="tag">You are a doctor.</span> Explain heart disease.
+
+<span class="comment"># Strong role (specific + contextual)</span>
+<span class="hl">You are a board-certified cardiologist</span>
+with 20 years in preventive medicine.
+Explain heart disease <span class="green">risk factors</span> to a
+35-year-old with no medical background.
+Use <span class="val">analogies</span>, avoid jargon.
+      </div>
+    </div>
+  </div>
+
+  <!-- Output formats -->
+  <div class="card mb24 card-rose">
+    <h3>📄 Controlling Output Format</h3>
+    <p style="margin-bottom:16px;">Be explicit. The model will match the format you demonstrate or describe.</p>
+    <div class="grid-3">
+      <div>
+        <div style="font-family:'Syne',sans-serif; font-size:11px; font-weight:700; color:var(--accent4); margin-bottom:8px;">JSON OUTPUT</div>
+        <div class="code-block">
+Respond only in <span class="hl">valid JSON</span>:
+{
+  <span class="key">"name"</span>: <span class="string">string</span>,
+  <span class="key">"score"</span>: <span class="val">0-10</span>,
+  <span class="key">"reason"</span>: <span class="string">string</span>
+}
+No extra text.
+        </div>
+      </div>
+      <div>
+        <div style="font-family:'Syne',sans-serif; font-size:11px; font-weight:700; color:var(--accent2); margin-bottom:8px;">MARKDOWN TABLE</div>
+        <div class="code-block">
+Return a <span class="hl">markdown table</span> with
+columns: | Feature | Pros | Cons |
+Include <span class="green">3-5 rows</span>.
+Use single-line entries only.
+        </div>
+      </div>
+      <div>
+        <div style="font-family:'Syne',sans-serif; font-size:11px; font-weight:700; color:var(--highlight); margin-bottom:8px;">STRUCTURED STEPS</div>
+        <div class="code-block">
+Format your answer as:
+<span class="hl">SUMMARY:</span> [1 sentence]
+<span class="hl">STEPS:</span>
+1. [action]
+2. [action]
+<span class="hl">CAVEATS:</span> [if any]
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Context control -->
+  <div class="card mb24">
+    <h3>📦 Context Window Strategy</h3>
+    <p style="margin-bottom:16px;">The model processes everything in its window equally — position and structure matter.</p>
+    <div class="grid-3">
+      <div style="background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:14px;">
+        <div style="font-size:20px; margin-bottom:8px;">🔝</div>
+        <div style="font-family:'Syne',sans-serif; font-size:12px; font-weight:700; margin-bottom:4px;">Primacy Effect</div>
+        <p style="font-size:11px; color:var(--muted);">Instructions at the START of the prompt are followed most reliably. Put rules and persona first.</p>
+      </div>
+      <div style="background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:14px;">
+        <div style="font-size:20px; margin-bottom:8px;">🔚</div>
+        <div style="font-family:'Syne',sans-serif; font-size:12px; font-weight:700; margin-bottom:4px;">Recency Effect</div>
+        <p style="font-size:11px; color:var(--muted);">The model also prioritizes what's at the END. Put the actual task/question last for best attention.</p>
+      </div>
+      <div style="background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:14px;">
+        <div style="font-size:20px; margin-bottom:8px;">📎</div>
+        <div style="font-family:'Syne',sans-serif; font-size:12px; font-weight:700; margin-bottom:4px;">Lost in Middle</div>
+        <p style="font-size:11px; color:var(--muted);">Long documents stuffed in the middle of prompts are often under-attended to. Chunk or summarize first.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Clarity Rules -->
+  <div class="card">
+    <h3>✍️ The 8 Rules of Prompt Clarity</h3>
+    <div class="grid-2" style="margin-top:12px; gap:8px;">
+      <div class="technique-item" style="margin-bottom:0;">
+        <div class="t-icon" style="--t-bg:rgba(16,185,129,0.15);">1️⃣</div>
+        <div class="t-body"><h4>Use imperative verbs</h4><p>Start with: Write, List, Analyze, Compare, Summarize, Generate, Explain</p></div>
+      </div>
+      <div class="technique-item" style="margin-bottom:0;">
+        <div class="t-icon" style="--t-bg:rgba(6,182,212,0.15);">2️⃣</div>
+        <div class="t-body"><h4>Specify the audience</h4><p>"Explain to a 10-year-old" vs "Explain to an ML engineer" — radically different outputs</p></div>
+      </div>
+      <div class="technique-item" style="margin-bottom:0;">
+        <div class="t-icon" style="--t-bg:rgba(245,158,11,0.15);">3️⃣</div>
+        <div class="t-body"><h4>State the output length</h4><p>Use word counts or descriptor: "in 3 bullet points", "in under 200 words", "exhaustively"</p></div>
+      </div>
+      <div class="technique-item" style="margin-bottom:0;">
+        <div class="t-icon" style="--t-bg:rgba(124,58,237,0.15);">4️⃣</div>
+        <div class="t-body"><h4>Positive framing first</h4><p>"Always use active voice" beats "Don't use passive voice" — tell it what TO do</p></div>
+      </div>
+      <div class="technique-item" style="margin-bottom:0;">
+        <div class="t-icon" style="--t-bg:rgba(244,63,94,0.15);">5️⃣</div>
+        <div class="t-body"><h4>One task per prompt</h4><p>Multi-task prompts dilute focus. Chain tasks instead of stacking them in one shot.</p></div>
+      </div>
+      <div class="technique-item" style="margin-bottom:0;">
+        <div class="t-icon" style="--t-bg:rgba(16,185,129,0.15);">6️⃣</div>
+        <div class="t-body"><h4>Use delimiters</h4><p>Separate instructions from data with ###, ---, XML tags, or triple quotes</p></div>
+      </div>
+      <div class="technique-item" style="margin-bottom:0;">
+        <div class="t-icon" style="--t-bg:rgba(6,182,212,0.15);">7️⃣</div>
+        <div class="t-body"><h4>Ground with examples</h4><p>For complex tasks, show 2–3 input/output pairs before the actual request</p></div>
+      </div>
+      <div class="technique-item" style="margin-bottom:0;">
+        <div class="t-icon" style="--t-bg:rgba(245,158,11,0.15);">8️⃣</div>
+        <div class="t-body"><h4>Iterate explicitly</h4><p>Tell the model to critique its first draft: "Now review for errors and rewrite"</p></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ============================================================ TECHNIQUES -->
+<div class="section" id="techniques">
+
+  <div class="section-title">🧠 Power Techniques</div>
+  <div class="section-sub">Advanced prompting methods that dramatically improve reasoning quality and reliability.</div>
+
+  <!-- CoT -->
+  <div class="pattern-block">
+    <div class="pb-header">
+      <h3>🔗 Chain-of-Thought (CoT)</h3>
+      <div class="tag-group"><span class="tag tag-intermediate">INTERMEDIATE</span></div>
+    </div>
+    <div class="pb-body">
+      <div class="grid-2">
+        <div>
+          <p style="margin-bottom:10px; color:var(--muted);">Force the model to reason step-by-step before giving an answer. Dramatically improves math, logic, and multi-step tasks.</p>
+          <div class="use-grid">
+            <div class="use-do"><strong>✓ Best for</strong>Math, logic puzzles, coding bugs, multi-step analysis</div>
+            <div class="use-dont"><strong>✗ Overkill for</strong>Simple lookups, creative one-liners, classification</div>
+          </div>
+        </div>
+        <div>
+          <div class="code-block">
+<span class="comment"># Standard CoT trigger</span>
+Solve this problem. <span class="hl">Think step by step</span>
+before giving your final answer.
+
+<span class="comment"># Zero-shot CoT magic phrase</span>
+<span class="hl">Let's think through this carefully.</span>
+
+<span class="comment"># Structured CoT</span>
+<span class="hl">REASONING:</span> [your thought process]
+<span class="hl">ANSWER:</span> [final answer only]
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Self-Consistency -->
+  <div class="pattern-block">
+    <div class="pb-header">
+      <h3>🎯 Self-Consistency Sampling</h3>
+      <div class="tag-group"><span class="tag tag-advanced">ADVANCED</span></div>
+    </div>
+    <div class="pb-body">
+      <div class="grid-2">
+        <div>
+          <p style="margin-bottom:10px; color:var(--muted);">Generate multiple outputs with high temperature, then aggregate (majority vote or synthesis). Reduces variance for critical decisions.</p>
+          <div class="code-block">
+<span class="comment"># Run 3× with temp=0.8, then:</span>
+<span class="hl">Given these 3 analyses below, identify</span>
+<span class="hl">the consensus conclusion:</span>
+
+Analysis 1: <span class="string">{{output_1}}</span>
+Analysis 2: <span class="string">{{output_2}}</span>
+Analysis 3: <span class="string">{{output_3}}</span>
+
+<span class="hl">Synthesize the most reliable answer.</span>
+          </div>
+        </div>
+        <div>
+          <div style="background:var(--surface2); border-radius:10px; padding:16px; height:100%;">
+            <div style="font-family:'Syne',sans-serif; font-size:12px; font-weight:700; margin-bottom:12px; color:var(--accent3);">⚡ When to Use</div>
+            <div class="quality-bar"><span class="q-label">High stakes</span><div class="q-track"><div class="q-fill" style="width:95%; --fill-color:var(--accent5);"></div></div><span class="q-val">✓✓✓</span></div>
+            <div class="quality-bar"><span class="q-label">Ambiguous task</span><div class="q-track"><div class="q-fill" style="width:85%; --fill-color:var(--accent3);"></div></div><span class="q-val">✓✓✓</span></div>
+            <div class="quality-bar"><span class="q-label">Medical/legal</span><div class="q-track"><div class="q-fill" style="width:90%; --fill-color:var(--accent4);"></div></div><span class="q-val">✓✓✓</span></div>
+            <div class="quality-bar"><span class="q-label">Simple Q&A</span><div class="q-track"><div class="q-fill" style="width:20%; --fill-color:var(--muted);"></div></div><span class="q-val">✗</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tree of Thoughts -->
+  <div class="pattern-block">
+    <div class="pb-header">
+      <h3>🌳 Tree of Thoughts (ToT)</h3>
+      <div class="tag-group"><span class="tag tag-advanced">ADVANCED</span></div>
+    </div>
+    <div class="pb-body">
+      <div class="grid-2">
+        <div>
+          <p style="margin-bottom:10px; color:var(--muted);">Explore multiple reasoning branches simultaneously. Great for open-ended problems with many valid approaches.</p>
+          <div class="code-block">
+<span class="hl">Problem:</span> <span class="string">{{problem}}</span>
+
+<span class="hl">Generate 3 different approaches:</span>
+<span class="key">Approach A:</span> [describe strategy]
+<span class="key">Approach B:</span> [describe strategy]
+<span class="key">Approach C:</span> [describe strategy]
+
+<span class="hl">Evaluate each:</span> pros, cons, feasibility
+<span class="hl">Select the best</span> and execute it fully.
+          </div>
+        </div>
+        <div>
+          <div style="background:var(--surface2); border-radius:10px; padding:16px;">
+            <div style="font-family:'Syne',sans-serif; font-size:11px; font-weight:700; color:var(--accent2); margin-bottom:10px;">ToT FLOW</div>
+            <div style="display:flex; flex-direction:column; gap:6px; align-items:center;">
+              <div style="background:rgba(124,58,237,0.2); border:1px solid rgba(124,58,237,0.4); border-radius:8px; padding:8px 20px; font-size:11px; font-weight:600;">PROBLEM</div>
+              <div style="color:var(--muted);">↓</div>
+              <div style="display:flex; gap:8px;">
+                <div style="background:rgba(6,182,212,0.15); border:1px solid rgba(6,182,212,0.3); border-radius:8px; padding:6px 10px; font-size:10px;">Branch A</div>
+                <div style="background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.3); border-radius:8px; padding:6px 10px; font-size:10px;">Branch B</div>
+                <div style="background:rgba(245,158,11,0.15); border:1px solid rgba(245,158,11,0.3); border-radius:8px; padding:6px 10px; font-size:10px;">Branch C</div>
+              </div>
+              <div style="color:var(--muted);">↓ evaluate ↓</div>
+              <div style="background:rgba(16,185,129,0.2); border:1px solid rgba(16,185,129,0.4); border-radius:8px; padding:8px 20px; font-size:11px; font-weight:600; color:var(--accent4);">BEST PATH → EXECUTE</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Critique & Refine -->
+  <div class="pattern-block">
+    <div class="pb-header">
+      <h3>🔄 Critique & Refine (Constitutional)</h3>
+      <div class="tag-group"><span class="tag tag-advanced">ADVANCED</span></div>
+    </div>
+    <div class="pb-body">
+      <div class="grid-2">
+        <div>
+          <p style="margin-bottom:10px; color:var(--muted);">Have the model critique its own output against defined criteria, then rewrite. Dramatically improves quality without human review.</p>
+          <div class="code-block">
+<span class="comment"># Step 1: Generate</span>
+Write a product description for {{product}}.
+
+<span class="comment"># Step 2: Critique</span>
+<span class="hl">Review the above. Check for:</span>
+- Clarity (is it jargon-free?)
+- Persuasion (does it sell benefits?)
+- Length (under 100 words?)
+List specific issues.
+
+<span class="comment"># Step 3: Rewrite</span>
+<span class="hl">Rewrite addressing all issues above.</span>
+          </div>
+        </div>
+        <div>
+          <div style="background:var(--surface2); border-radius:10px; padding:16px;">
+            <div style="font-family:'Syne',sans-serif; font-size:11px; font-weight:700; color:var(--accent5); margin-bottom:12px;">CRITIQUE CRITERIA TEMPLATES</div>
+            <div style="font-size:11px; line-height:1.8; color:var(--muted);">
+              <div style="margin-bottom:6px;"><span style="color:var(--accent4);">📝 Writing:</span> tone, clarity, brevity, voice</div>
+              <div style="margin-bottom:6px;"><span style="color:var(--accent2);">💻 Code:</span> correctness, edge cases, performance, style</div>
+              <div style="margin-bottom:6px;"><span style="color:var(--accent3);">📊 Analysis:</span> evidence, assumptions, bias, completeness</div>
+              <div><span style="color:var(--highlight);">🎯 Strategy:</span> feasibility, risks, alternatives, alignment</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- More techniques grid -->
+  <div class="grid-3 mt16">
+    <div class="card card-amber">
+      <h3>🎪 Persona Stacking</h3>
+      <div class="tag-group mb16"><span class="tag tag-intermediate">INTERMEDIATE</span></div>
+      <p>Assign competing expert personas to debate a topic, then synthesize.</p>
+      <div class="code-block" style="margin-top:10px;">
+<span class="hl">As a VC investor</span>: evaluate this idea.
+<span class="hl">As a skeptical user</span>: poke holes.
+<span class="hl">As a product manager</span>: find middle ground.
+<span class="green">Now synthesize</span> all three views.
+      </div>
+    </div>
+
+    <div class="card card-cyan">
+      <h3>🔀 Output Anchoring</h3>
+      <div class="tag-group mb16"><span class="tag tag-intermediate">INTERMEDIATE</span></div>
+      <p>Start the assistant's response yourself to constrain the format from the first token.</p>
+      <div class="code-block" style="margin-top:10px;">
+<span class="comment"># In API: add assistant turn start</span>
+<span class="key">user:</span> <span class="string">Analyze this startup pitch.</span>
+<span class="key">assistant:</span> <span class="hl">STRENGTHS:</span>
+
+<span class="comment"># The model continues from there</span>
+      </div>
+    </div>
+
+    <div class="card card-rose">
+      <h3>📐 Meta-Prompting</h3>
+      <div class="tag-group mb16"><span class="tag tag-advanced">ADVANCED</span></div>
+      <p>Ask the model to generate or improve the prompt itself before answering.</p>
+      <div class="code-block" style="margin-top:10px;">
+<span class="hl">First, rewrite my prompt below</span>
+to be clearer and more specific:
+<span class="string">"""{{my_rough_prompt}}"""</span>
+
+Then answer using the improved version.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ============================================================ FRAMEWORKS -->
+<div class="section" id="frameworks">
+
+  <div class="section-title">🏗️ Prompt Frameworks</div>
+  <div class="section-sub">Proven structures for different task types. Pick the one that fits your goal.</div>
+
+  <!-- RTF -->
+  <div class="framework-visual mb24">
+    <div class="fw-title">RTF — Role · Task · Format</div>
+    <div class="fw-flow">
+      <div class="fw-step" style="border-color:rgba(16,185,129,0.4);">
+        <div class="step-num">01</div>
+        <div class="step-name" style="color:var(--accent4);">Role</div>
+        <div class="step-desc">Who the AI is</div>
+      </div>
+      <div class="fw-arrow">→</div>
+      <div class="fw-step" style="border-color:rgba(124,58,237,0.4);">
+        <div class="step-num">02</div>
+        <div class="step-name" style="color:var(--highlight);">Task</div>
+        <div class="step-desc">What to do</div>
+      </div>
+      <div class="fw-arrow">→</div>
+      <div class="fw-step" style="border-color:rgba(6,182,212,0.4);">
+        <div class="step-num">03</div>
+        <div class="step-name" style="color:var(--accent2);">Format</div>
+        <div class="step-desc">How to output</div>
+      </div>
+    </div>
+    <div class="code-block" style="margin-top:16px;">
+<span class="hl">Role:</span>    You are a senior UX writer with fintech experience.
+<span class="hl">Task:</span>    Write 5 onboarding microcopy variants for a "Link Bank Account" button.
+<span class="hl">Format:</span> Return as a numbered list. Each variant max 8 words. Include tone label.
+    </div>
+  </div>
+
+  <!-- CRISPE -->
+  <div class="framework-visual mb24">
+    <div class="fw-title">CRISPE — Capacity · Role · Insight · Statement · Personality · Experiment</div>
+    <div class="fw-flow">
+      <div class="fw-step"><div class="step-num">C</div><div class="step-name" style="color:var(--accent5);">Capacity</div><div class="step-desc">AI's capability</div></div>
+      <div class="fw-arrow">→</div>
+      <div class="fw-step"><div class="step-num">R</div><div class="step-name" style="color:var(--highlight);">Role</div><div class="step-desc">Persona</div></div>
+      <div class="fw-arrow">→</div>
+      <div class="fw-step"><div class="step-num">I</div><div class="step-name" style="color:var(--accent2);">Insight</div><div class="step-desc">Context/data</div></div>
+      <div class="fw-arrow">→</div>
+      <div class="fw-step"><div class="step-num">S</div><div class="step-name" style="color:var(--accent4);">Statement</div><div class="step-desc">The task</div></div>
+      <div class="fw-arrow">→</div>
+      <div class="fw-step"><div class="step-num">P</div><div class="step-name" style="color:var(--accent3);">Personality</div><div class="step-desc">Tone/style</div></div>
+      <div class="fw-arrow">→</div>
+      <div class="fw-step"><div class="step-num">E</div><div class="step-name" style="color:var(--muted);">Experiment</div><div class="step-desc">Generate N variations</div></div>
+    </div>
+    <div class="code-block" style="margin-top:16px;">
+<span class="hl">C:</span> Act as an expert copywriter and brand strategist.
+<span class="hl">R:</span> You specialize in B2B SaaS companies targeting enterprises.
+<span class="hl">I:</span> Our product reduces DevOps incident response time by 60%.
+<span class="hl">S:</span> Write a value proposition for our homepage hero section.
+<span class="hl">P:</span> Confident, urgent, jargon-light. Sounds like Stripe or Linear.
+<span class="hl">E:</span> Give me 3 variations with different emotional hooks.
+    </div>
+  </div>
+
+  <!-- PEEL -->
+  <div class="framework-visual mb24">
+    <div class="fw-title">PEEL — Point · Evidence · Explanation · Link</div>
+    <div class="fw-flow">
+      <div class="fw-step" style="border-color:rgba(245,158,11,0.4);"><div class="step-num">P</div><div class="step-name" style="color:var(--accent3);">Point</div><div class="step-desc">Main claim</div></div>
+      <div class="fw-arrow">→</div>
+      <div class="fw-step" style="border-color:rgba(16,185,129,0.4);"><div class="step-num">E</div><div class="step-name" style="color:var(--accent4);">Evidence</div><div class="step-desc">Support it</div></div>
+      <div class="fw-arrow">→</div>
+      <div class="fw-step" style="border-color:rgba(124,58,237,0.4);"><div class="step-num">E</div><div class="step-name" style="color:var(--highlight);">Explain</div><div class="step-desc">Why it matters</div></div>
+      <div class="fw-arrow">→</div>
+      <div class="fw-step" style="border-color:rgba(6,182,212,0.4);"><div class="step-num">L</div><div class="step-name" style="color:var(--accent2);">Link</div><div class="step-desc">Connect to goal</div></div>
+    </div>
+    <p style="color:var(--muted); font-size:12px; margin-top:12px;">Best for: essays, business reports, persuasive arguments, academic writing</p>
+  </div>
+
+  <!-- Comparison Table -->
+  <div class="card">
+    <h3>📊 Framework Comparison</h3>
+    <div style="overflow-x:auto; margin-top:14px;">
+      <table class="compare-table">
+        <thead><tr>
+          <th>Framework</th>
+          <th>Best For</th>
+          <th>Complexity</th>
+          <th>Output Type</th>
+          <th>Speed</th>
+        </tr></thead>
+        <tbody>
+          <tr><td class="name-col">RTF</td><td>Any task (universal)</td><td class="good">Low</td><td>Any</td><td class="good">Fast</td></tr>
+          <tr><td class="name-col">CRISPE</td><td>Creative/content work</td><td>Medium</td><td>Content, copy</td><td>Medium</td></tr>
+          <tr><td class="name-col">PEEL</td><td>Arguments, essays</td><td class="good">Low</td><td>Written analysis</td><td class="good">Fast</td></tr>
+          <tr><td class="name-col">RISEN</td><td>Expert advice tasks</td><td>Medium</td><td>Recommendations</td><td>Medium</td></tr>
+          <tr><td class="name-col">TRACE</td><td>Agentic pipelines</td><td class="bad">High</td><td>Structured action</td><td class="bad">Slower</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- ============================================================ AGENTS -->
+<div class="section" id="agents">
+
+  <div class="section-title">🤖 Agent Prompting Patterns</div>
+  <div class="section-sub">Design patterns for autonomous AI systems that plan, act, observe, and self-correct.</div>
+
+  <!-- ReAct -->
+  <div class="pattern-block mb16">
+    <div class="pb-header">
+      <h3>⚡ ReAct — Reason + Act</h3>
+      <div class="tag-group"><span class="tag tag-advanced">ADVANCED</span><span class="tag tag-agent">AGENT</span></div>
+    </div>
+    <div class="pb-body">
+      <div class="grid-2">
+        <div>
+          <p style="color:var(--muted); font-size:12px; margin-bottom:12px;">Interleave reasoning (Thought) and tool execution (Action) in a loop. The gold standard for tool-using agents.</p>
+          <div class="code-block">
+<span class="hl">You are an agent. For each step:</span>
+
+<span class="key">Thought:</span> What do I need to do?
+<span class="key">Action:</span> <span class="tag">[tool_name]</span>(<span class="green">params</span>)
+<span class="key">Observation:</span> <span class="string">[result from tool]</span>
+
+Repeat until task is complete, then:
+<span class="key">Final Answer:</span> <span class="val">[your conclusion]</span>
+
+<span class="comment"># Available tools:</span>
+<span class="green">search</span>(query) → web results
+<span class="green">calculator</span>(expr) → number
+<span class="green">read_file</span>(path) → contents
+          </div>
+        </div>
+        <div>
+          <div style="background:var(--surface2); border-radius:10px; padding:16px;">
+            <div style="font-family:'Syne',sans-serif; font-size:11px; font-weight:700; color:var(--accent2); margin-bottom:12px;">ReAct TRACE EXAMPLE</div>
+            <div style="font-size:11px; line-height:1.8; font-family:'JetBrains Mono', monospace;">
+              <div style="color:var(--highlight);">Thought: I need to find the CEO of OpenAI</div>
+              <div style="color:var(--accent3);">Action: search("OpenAI CEO 2024")</div>
+              <div style="color:var(--muted);">Observation: Sam Altman is CEO of OpenAI</div>
+              <div style="color:var(--highlight);">Thought: Now I need his background</div>
+              <div style="color:var(--accent3);">Action: search("Sam Altman background")</div>
+              <div style="color:var(--muted);">Observation: Former YC president, startup...</div>
+              <div style="color:var(--accent4); margin-top:8px;">Final Answer: Sam Altman, former YC president...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Multi-Agent -->
+  <div class="pattern-block mb16">
+    <div class="pb-header">
+      <h3>🕸️ Multi-Agent Orchestration</h3>
+      <div class="tag-group"><span class="tag tag-advanced">ADVANCED</span><span class="tag tag-agent">AGENT</span></div>
+    </div>
+    <div class="pb-body">
+      <div class="grid-2">
+        <div>
+          <p style="color:var(--muted); font-size:12px; margin-bottom:12px;">Route tasks to specialized sub-agents. An orchestrator coordinates; specialists execute. Scales complex workflows.</p>
+          <div style="background:var(--surface2); border-radius:10px; padding:14px;">
+            <div style="display:flex; flex-direction:column; align-items:center; gap:8px;">
+              <div style="background:rgba(124,58,237,0.2); border:1px solid rgba(124,58,237,0.5); border-radius:8px; padding:8px 20px; font-family:'Syne',sans-serif; font-size:12px; font-weight:700;">🎯 ORCHESTRATOR</div>
+              <div style="color:var(--muted);">↓ routes tasks ↓</div>
+              <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center;">
+                <div class="agent-node" style="background:rgba(6,182,212,0.1); border-color:rgba(6,182,212,0.3);">
+                  <h4 style="color:var(--accent2);">🔍 Researcher</h4>
+                  <p>Web search, retrieval</p>
+                </div>
+                <div class="agent-node" style="background:rgba(16,185,129,0.1); border-color:rgba(16,185,129,0.3);">
+                  <h4 style="color:var(--accent4);">✍️ Writer</h4>
+                  <p>Drafting, editing</p>
+                </div>
+                <div class="agent-node" style="background:rgba(245,158,11,0.1); border-color:rgba(245,158,11,0.3);">
+                  <h4 style="color:var(--accent3);">✅ Critic</h4>
+                  <p>Review, validate</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="code-block">
+<span class="comment"># Orchestrator system prompt</span>
+<span class="hl">You are the Orchestrator. Your job is to:</span>
+1. Decompose the user's goal into subtasks
+2. Assign each subtask to the right agent:
+   - <span class="green">@researcher</span>: information gathering
+   - <span class="green">@writer</span>: content creation
+   - <span class="green">@critic</span>: quality review
+3. Synthesize agent outputs
+4. Return final deliverable
+
+<span class="hl">Always output:</span>
+<span class="key">PLAN:</span> [numbered subtask list]
+<span class="key">ASSIGN:</span> [agent → subtask mapping]
+<span class="key">SYNTHESIZE:</span> [final combined output]
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Agent Patterns Grid -->
+  <div class="grid-2">
+
+    <div class="card card-cyan">
+      <h3>🔁 Self-Reflection Agent</h3>
+      <div class="tag-group mb16"><span class="tag tag-advanced">ADVANCED</span><span class="tag tag-agent">AGENT</span></div>
+      <p style="margin-bottom:10px;">Agent evaluates its own output quality against rubric before returning.</p>
+      <div class="code-block">
+<span class="hl">After completing the task:</span>
+1. Score your output (1-10) on:
+   - Accuracy, Completeness, Clarity
+2. If any score < 7: <span class="tag">REVISE</span>
+3. Explain what you improved
+4. Return: <span class="green">final output + scores</span>
+      </div>
+    </div>
+
+    <div class="card card-amber">
+      <h3>🗺️ Plan-and-Execute</h3>
+      <div class="tag-group mb16"><span class="tag tag-advanced">ADVANCED</span><span class="tag tag-agent">AGENT</span></div>
+      <p style="margin-bottom:10px;">Separate planning from execution. Plan first, then run each step sequentially.</p>
+      <div class="code-block">
+<span class="hl">PHASE 1 — PLAN:</span>
+List all steps to accomplish: <span class="string">{{goal}}</span>
+Format: numbered checklist
+
+<span class="hl">PHASE 2 — EXECUTE:</span>
+Work through each step.
+After each: <span class="green">mark ✓ and note output</span>
+
+<span class="hl">PHASE 3 — VERIFY:</span>
+Did each step succeed? If not, retry.
+      </div>
+    </div>
+
+    <div class="card card-rose">
+      <h3>🧱 Scaffolded Decomposition</h3>
+      <div class="tag-group mb16"><span class="tag tag-advanced">ADVANCED</span><span class="tag tag-agent">AGENT</span></div>
+      <p style="margin-bottom:10px;">Break complex tasks into atomic subtasks with defined interfaces between them.</p>
+      <div class="code-block">
+<span class="hl">Decompose this task into atomic steps</span>
+where each step:
+- Has a clear single input
+- Has a clear single output
+- Can be verified independently
+
+<span class="key">Input:</span>  <span class="string">{{previous_step_output}}</span>
+<span class="key">Task:</span>   <span class="string">{{current_step}}</span>
+<span class="key">Output:</span> <span class="green">{{structured_result}}</span>
+      </div>
+    </div>
+
+    <div class="card card-purple">
+      <h3>💾 Memory-Augmented Agent</h3>
+      <div class="tag-group mb16"><span class="tag tag-advanced">ADVANCED</span><span class="tag tag-agent">AGENT</span></div>
+      <p style="margin-bottom:10px;">Maintain short-term (session) and long-term (retrieved) memory across interactions.</p>
+      <div class="code-block">
+<span class="hl">MEMORY CONTEXT:</span>
+<span class="key">Short-term:</span> <span class="string">{{recent_conversation}}</span>
+<span class="key">Long-term:</span>  <span class="string">{{retrieved_facts}}</span>
+<span class="key">User prefs:</span> <span class="string">{{stored_preferences}}</span>
+
+<span class="comment"># At end of each turn:</span>
+<span class="hl">MEMORY UPDATE:</span>
+New facts: <span class="green">[extract and store]</span>
+Outdated:  <span class="tag">[flag for removal]</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Safety for Agents -->
+  <div class="card mt16" style="border-color:rgba(244,63,94,0.3); background:rgba(244,63,94,0.04);">
+    <h3>🛡️ Agent Safety Patterns</h3>
+    <p style="margin-bottom:14px;">Critical guardrails every production agent needs:</p>
+    <div class="grid-3">
+      <div class="technique-item" style="margin-bottom:0;">
+        <div class="t-icon" style="--t-bg:rgba(244,63,94,0.15);">🚫</div>
+        <div class="t-body"><h4>Approval Gates</h4><p>"Before executing any destructive action (delete, send, pay), confirm with user."</p></div>
+      </div>
+      <div class="technique-item" style="margin-bottom:0;">
+        <div class="t-icon" style="--t-bg:rgba(245,158,11,0.15);">🔢</div>
+        <div class="t-body"><h4>Iteration Limits</h4><p>"If you have not completed the task in 10 steps, stop and report status."</p></div>
+      </div>
+      <div class="technique-item" style="margin-bottom:0;">
+        <div class="t-icon" style="--t-bg:rgba(16,185,129,0.15);">🎯</div>
+        <div class="t-body"><h4>Scope Bounding</h4><p>"You may only access files in /workspace/. Never access system directories."</p></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ============================================================ TEMPLATES -->
+<div class="section" id="templates">
+
+  <div class="section-title">📋 App-Building Prompt Templates</div>
+  <div class="section-sub">Production-ready templates for common AI-powered application types. Copy, customize, and deploy.</div>
+
+  <div class="grid-2">
+
+    <!-- Chatbot -->
+    <div class="card card-purple">
+      <h3>💬 Customer Support Chatbot</h3>
+      <div class="tag-group mb16"><span class="tag tag-intermediate">INTERMEDIATE</span></div>
+      <div class="template-box">
+        <div class="t-label">SYSTEM PROMPT</div>
+        <div class="code-block" style="margin:0; border:none; background:transparent; padding:0;">
+<span class="hl">You are {{bot_name}}</span>, support agent for {{company}}.
+
+<span class="key">PERSONALITY:</span> Warm, efficient, solution-focused.
+<span class="key">AUDIENCE:</span> {{customer_type}} customers.
+
+<span class="key">ALWAYS:</span>
+✓ Acknowledge feelings before solving
+✓ Offer 1 clear solution, then alternatives
+✓ End with: "Is there anything else?"
+
+<span class="key">NEVER:</span>
+✗ Promise refunds without authorization
+✗ Discuss competitor products
+✗ Go off-topic from {{product_domain}}
+
+<span class="key">ESCALATE</span> if: billing disputes > $500,
+legal threats, or 3+ failed solutions.
+<span class="key">ESCALATION MSG:</span> "I'm connecting you to
+our specialist team right now."
+        </div>
+      </div>
+    </div>
+
+    <!-- RAG -->
+    <div class="card card-cyan">
+      <h3>🔍 RAG Knowledge Assistant</h3>
+      <div class="tag-group mb16"><span class="tag tag-advanced">ADVANCED</span></div>
+      <div class="template-box">
+        <div class="t-label">SYSTEM PROMPT</div>
+        <div class="code-block" style="margin:0; border:none; background:transparent; padding:0;">
+<span class="hl">You are a knowledge assistant.</span>
+Answer ONLY using the provided context.
+
+<span class="key">CONTEXT:</span>
+<span class="string">---
+{{retrieved_chunks}}
+---</span>
+
+<span class="key">RULES:</span>
+- If answer is in context: answer directly
+- If partially there: answer + flag gaps
+- If not in context: say exactly:
+  <span class="val">"I don't have that information in my
+  knowledge base. Try: {{fallback_url}}"</span>
+- Always cite: <span class="green">[Source: {{chunk_id}}]</span>
+- Never invent facts outside context
+        </div>
+      </div>
+    </div>
+
+    <!-- Code Assistant -->
+    <div class="card card-green">
+      <h3>💻 Code Review Assistant</h3>
+      <div class="tag-group mb16"><span class="tag tag-intermediate">INTERMEDIATE</span></div>
+      <div class="template-box">
+        <div class="t-label">SYSTEM PROMPT</div>
+        <div class="code-block" style="margin:0; border:none; background:transparent; padding:0;">
+<span class="hl">You are a senior {{language}} engineer.</span>
+Review code with this exact format:
+
+<span class="key">🐛 BUGS:</span> [critical issues, line numbers]
+<span class="key">⚡ PERFORMANCE:</span> [bottlenecks]
+<span class="key">🔒 SECURITY:</span> [vulnerabilities]
+<span class="key">📖 READABILITY:</span> [style improvements]
+<span class="key">✅ GOOD:</span> [what's done well]
+
+<span class="key">REWRITE:</span> Provide corrected version
+only if bugs or security issues exist.
+
+Rating: <span class="green">X/10</span> with one-line justification.
+        </div>
+      </div>
+    </div>
+
+    <!-- Data Extractor -->
+    <div class="card card-amber">
+      <h3>📊 Structured Data Extractor</h3>
+      <div class="tag-group mb16"><span class="tag tag-intermediate">INTERMEDIATE</span></div>
+      <div class="template-box">
+        <div class="t-label">SYSTEM PROMPT</div>
+        <div class="code-block" style="margin:0; border:none; background:transparent; padding:0;">
+<span class="hl">Extract structured data from the input.</span>
+Return ONLY valid JSON. No commentary.
+
+<span class="key">Schema:</span>
+{
+  <span class="key">"{{field_1}}"</span>: <span class="string">type | null</span>,
+  <span class="key">"{{field_2}}"</span>: <span class="string">type | null</span>,
+  <span class="key">"confidence"</span>: <span class="val">"high|medium|low"</span>,
+  <span class="key">"missing_fields"</span>: <span class="green">string[]</span>
+}
+
+If a field can't be found: use <span class="val">null</span>.
+Add it to <span class="green">missing_fields</span> array.
+        </div>
+      </div>
+    </div>
+
+    <!-- Content Generator -->
+    <div class="card card-rose">
+      <h3>✍️ Brand Content Generator</h3>
+      <div class="tag-group mb16"><span class="tag tag-intermediate">INTERMEDIATE</span></div>
+      <div class="template-box">
+        <div class="t-label">SYSTEM PROMPT</div>
+        <div class="code-block" style="margin:0; border:none; background:transparent; padding:0;">
+<span class="hl">You are {{brand_name}}'s content writer.</span>
+
+<span class="key">BRAND VOICE:</span> {{tone_descriptors}}
+<span class="key">TARGET:</span> {{audience_description}}
+<span class="key">AVOID:</span> {{banned_words_or_topics}}
+
+<span class="key">CONTENT TYPES:</span>
+- tweet: 280 chars, 1 hook + CTA
+- linkedin: 150 words, 3 insights
+- email: subject + 200-word body
+- ad: headline (8 words) + body (30 words)
+
+State the type before writing.
+Generate 3 variations of each.
+        </div>
+      </div>
+    </div>
+
+    <!-- Summarizer -->
+    <div class="card card-purple">
+      <h3>📝 Multi-Level Summarizer</h3>
+      <div class="tag-group mb16"><span class="tag tag-beginner">BEGINNER</span></div>
+      <div class="template-box">
+        <div class="t-label">USER PROMPT TEMPLATE</div>
+        <div class="code-block" style="margin:0; border:none; background:transparent; padding:0;">
+Summarize the following text at 3 levels:
+
+<span class="key">TL;DR:</span>    1 sentence max
+<span class="key">SHORT:</span>    3 bullet points, key facts only
+<span class="key">DETAILED:</span> 5 paragraphs, preserve nuance
+
+<span class="key">Audience:</span> {{audience}}
+<span class="key">Purpose:</span>  {{why_they_need_it}}
+
+<span class="key">TEXT:</span>
+<span class="string">"""
+{{document_text}}
+"""</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Decision Engine -->
+    <div class="card card-cyan">
+      <h3>⚖️ AI Decision Engine</h3>
+      <div class="tag-group mb16"><span class="tag tag-advanced">ADVANCED</span></div>
+      <div class="template-box">
+        <div class="t-label">SYSTEM PROMPT</div>
+        <div class="code-block" style="margin:0; border:none; background:transparent; padding:0;">
+<span class="hl">You make decisions using this rubric:</span>
+
+<span class="key">CRITERIA</span> (weighted):
+- {{criterion_1}}: <span class="green">{{weight_1}}%</span>
+- {{criterion_2}}: <span class="green">{{weight_2}}%</span>
+- {{criterion_3}}: <span class="green">{{weight_3}}%</span>
+
+<span class="key">FOR EACH OPTION:</span>
+1. Score 1-10 per criterion
+2. Calculate weighted total
+3. List top 3 risks
+
+<span class="key">OUTPUT FORMAT:</span>
+| Option | C1 | C2 | C3 | Total |
+<span class="val">RECOMMENDATION:</span> [winner] because [reason]
+<span class="val">CONFIDENCE:</span> High/Medium/Low
+        </div>
+      </div>
+    </div>
+
+    <!-- Persona interviewer -->
+    <div class="card card-amber">
+      <h3>🎤 Persona Interviewer</h3>
+      <div class="tag-group mb16"><span class="tag tag-intermediate">INTERMEDIATE</span></div>
+      <div class="template-box">
+        <div class="t-label">SYSTEM PROMPT</div>
+        <div class="code-block" style="margin:0; border:none; background:transparent; padding:0;">
+<span class="hl">You are conducting a user research interview.</span>
+
+<span class="key">PERSONA:</span> {{user_persona_description}}
+<span class="key">GOAL:</span> Uncover {{research_objective}}
+<span class="key">STYLE:</span> Open-ended, curious, non-leading
+
+<span class="key">FLOW:</span>
+1. Warm-up (2 questions)
+2. Core topic (4 questions)
+3. Pain points (2 questions)
+4. Wrap-up + open floor
+
+After 8 questions, provide:
+<span class="green">KEY INSIGHTS:</span> [bulleted themes]
+<span class="green">QUOTES TO SAVE:</span> [notable responses]
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ============================================================ CHECKLIST -->
+<div class="section" id="checklist">
+
+  <div class="section-title">✅ Prompt Quality Checklist</div>
+  <div class="section-sub">Run your prompts through this checklist before deploying. Click to mark items done.</div>
+
+  <div class="grid-2">
+    <div class="card card-green">
+      <h3>🌱 Beginner Checklist</h3>
+      <p style="margin-bottom:14px; color:var(--muted);">Essential before any prompt goes live.</p>
+      <div id="checklist-beginner">
+        <div class="checklist-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="cl-text">Task is stated clearly with an imperative verb (Write, Analyze, List...)</div></div>
+        <div class="checklist-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="cl-text">Output format is specified (JSON, bullet list, paragraph, table...)</div></div>
+        <div class="checklist-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="cl-text">Target audience is defined (expert, beginner, executive...)</div></div>
+        <div class="checklist-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="cl-text">Length/scope is bounded (word count, number of items, depth)</div></div>
+        <div class="checklist-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="cl-text">I've tested the prompt at least 3 times with varied inputs</div></div>
+        <div class="checklist-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="cl-text">Ambiguous terms are defined or removed</div></div>
+        <div class="checklist-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="cl-text">No conflicting instructions exist in the same prompt</div></div>
+      </div>
+    </div>
+
+    <div class="card card-amber">
+      <h3>🔧 Intermediate Checklist</h3>
+      <p style="margin-bottom:14px; color:var(--muted);">For prompts in production or team use.</p>
+      <div id="checklist-intermediate">
+        <div class="checklist-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="cl-text">Role/persona is specific with domain expertise and communication style</div></div>
+        <div class="checklist-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="cl-text">At least 2 examples (input → output pairs) are provided for complex tasks</div></div>
+        <div class="checklist-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="cl-text">Edge cases and failure modes are handled with explicit instructions</div></div>
+        <div class="checklist-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="cl-text">Dynamic variables are templated with {{placeholder}} notation</div></div>
+        <div class="checklist-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="cl-text">Delimiters separate instructions from user-provided data</div></div>
+        <div class="checklist-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="cl-text">Output has been validated against a rubric or test cases</div></div>
+        <div class="checklist-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="cl-text">Temperature/parameters are tuned for the task type</div></div>
+      </div>
+    </div>
+
+    <div class="card card-rose">
+      <h3>🔴 Advanced Checklist</h3>
+      <p style="margin-bottom:14px; color:var(--muted);">For complex pipelines, agents, and AI products.</p>
+      <div id="checklist-advanced">
+        <div class="checklist-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="cl-text">System prompt is versioned and stored in source control</div></div>
+        <div class="checklist-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="cl-text">Prompt is tested with adversarial inputs (prompt injection attempts)</div></div>
+        <div class="checklist-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="cl-text">Self-critique or output validation step is included for quality assurance</div></div>
+        <div class="checklist-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="cl-text">Fallback behavior is defined for unexpected/out-of-scope inputs</div></div>
+        <div class="checklist-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="cl-text">Token usage is optimized (no redundant context)</div></div>
+        <div class="checklist-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="cl-text">Agent loops have iteration limits and escape conditions</div></div>
+        <div class="checklist-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="cl-text">Output parsing handles malformed model responses gracefully</div></div>
+        <div class="checklist-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="cl-text">Evals / automated tests exist for regression detection</div></div>
+      </div>
+    </div>
+
+    <div class="card card-cyan">
+      <h3>🤖 Agent Safety Checklist</h3>
+      <p style="margin-bottom:14px; color:var(--muted);">Before deploying any autonomous agent to production.</p>
+      <div id="checklist-agent">
+        <div class="checklist-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="cl-text">Agent scope is clearly bounded (which systems/actions it can access)</div></div>
+        <div class="checklist-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="cl-text">Destructive actions (delete, send, pay) require explicit human approval</div></div>
+        <div class="checklist-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="cl-text">Max iteration/step limit is enforced at the infrastructure level</div></div>
+        <div class="checklist-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="cl-text">All tool calls and outputs are logged for audit</div></div>
+        <div class="checklist-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="cl-text">Agent has a "report and stop" mode for unexpected situations</div></div>
+        <div class="checklist-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="cl-text">Sensitive data is not passed into agent context unnecessarily</div></div>
+        <div class="checklist-item" onclick="toggleCheck(this)"><div class="check-box"></div><div class="cl-text">Human-in-the-loop checkpoints tested and verified working</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="card mt16">
+    <h3>📊 Your Progress</h3>
+    <div id="progress-display" style="margin-top:12px;">
+      <div class="quality-bar">
+        <span class="q-label">Beginner</span>
+        <div class="q-track"><div class="q-fill" id="prog-beginner" style="width:0%; --fill-color:var(--accent4); transition:width 0.4s;"></div></div>
+        <span class="q-val" id="pct-beginner">0%</span>
+      </div>
+      <div class="quality-bar">
+        <span class="q-label">Intermediate</span>
+        <div class="q-track"><div class="q-fill" id="prog-intermediate" style="width:0%; --fill-color:var(--accent3); transition:width 0.4s;"></div></div>
+        <span class="q-val" id="pct-intermediate">0%</span>
+      </div>
+      <div class="quality-bar">
+        <span class="q-label">Advanced</span>
+        <div class="q-track"><div class="q-fill" id="prog-advanced" style="width:0%; --fill-color:var(--accent5); transition:width 0.4s;"></div></div>
+        <span class="q-val" id="pct-advanced">0%</span>
+      </div>
+      <div class="quality-bar">
+        <span class="q-label">Agent Safety</span>
+        <div class="q-track"><div class="q-fill" id="prog-agent" style="width:0%; --fill-color:var(--accent2); transition:width 0.4s;"></div></div>
+        <span class="q-val" id="pct-agent">0%</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</main>
+
+<script>
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function toggleCheck(el) {
+  el.classList.toggle('checked');
+  el.querySelector('.check-box').textContent = el.classList.contains('checked') ? '✓' : '';
+  updateProgress();
+}
+
+function updateProgress() {
+  const groups = ['beginner', 'intermediate', 'advanced', 'agent'];
+  groups.forEach(g => {
+    const items = document.querySelectorAll(`#checklist-${g} .checklist-item`);
+    const checked = document.querySelectorAll(`#checklist-${g} .checklist-item.checked`);
+    const pct = items.length ? Math.round((checked.length / items.length) * 100) : 0;
+    document.getElementById(`prog-${g}`).style.width = pct + '%';
+    document.getElementById(`pct-${g}`).textContent = pct + '%';
+  });
+}
+
+// Copy buttons
+document.querySelectorAll('.code-block').forEach(block => {
+  const btn = document.createElement('button');
+  btn.className = 'copy-btn';
+  btn.textContent = 'copy';
+  btn.onclick = () => {
+    navigator.clipboard.writeText(block.innerText.replace('copy','').trim());
+    btn.textContent = 'copied!';
+    setTimeout(() => btn.textContent = 'copy', 1500);
+  };
+  block.style.position = 'relative';
+  block.appendChild(btn);
+});
+</script>
+
+</body>
+</html>
